@@ -19,7 +19,8 @@ char OP_STR[20];
 char Car_Cour;    // caractère courant
 char PROG_ID[20]; // mot courant
 int ADRESSE;
-int label_cour = 0;
+int if_label_cour = 0;
+int while_label_cour = 1;
 
 // Déclaration des fonctions
 void VARS();
@@ -445,17 +446,23 @@ void AFFEC() {
 void SI() {
     Test_Symbole(IF_TOKEN, IF_ERR);
     COND();
-    Generer_Args("BZE", label_cour);
+    Generer_Args("BZE", if_label_cour);
     Test_Symbole(THEN_TOKEN, THEN_ERR);
     INST();
-    Generer_Args("LABEL", label_cour);
+    Generer_Args("LABEL", if_label_cour);
+    if_label_cour += 3;
 }
 
 void TANTQUE() {
     Test_Symbole(WHILE_TOKEN, WHILE_ERR);
+    Generer_Args("LABEL", while_label_cour);
     COND();
+    Generer_Args("BZE", while_label_cour + 1);
     Test_Symbole(DO_TOKEN, DO_ERR);
     INST();
+    Generer_Args("BRN", while_label_cour);
+    Generer_Args("BZE", while_label_cour + 1);
+    while_label_cour += 3;
 }
 
 void ECRIRE() {
@@ -557,7 +564,6 @@ void FACT() {
         Test_Symbole(PF_TOKEN, PF_ERR);
         break;
     default:
-        printf("error here\n");
         Erreur(ERREUR_ERR);
         break;
     }
@@ -586,7 +592,6 @@ void RELOP() {
         strcpy(OP_STR, "GEQ");
         break;
     default:
-        printf("error here 2\n");
         Erreur(ERREUR_ERR);
         break;
     }
@@ -602,7 +607,6 @@ void ADDOP() {
         Test_Symbole(SYM_COUR.CODE, MOINS_ERR);
         break;
     default:
-        printf("error here 3\n");
         Erreur(ERREUR_ERR);
         break;
     }
@@ -618,7 +622,6 @@ void MULOP() {
         Test_Symbole(SYM_COUR.CODE, DIV_ERR);
         break;
     default:
-        printf("error here 4\n");
         Erreur(ERREUR_ERR);
         break;
     }

@@ -3,6 +3,6 @@ const toto=21;
 var x, y;
 Begin
 x:=toto+y*21;
-if x=45 then y:=90;
+while toto=45 do x:=90;
 read(y);
 end.
