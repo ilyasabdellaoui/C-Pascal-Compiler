@@ -78,22 +78,28 @@ typedef enum
     EOF_ERR,
     EG_ERR,
     CONST_VAR_BEGIN_ERR,
-    VAR_BEGIN_ERR
+    VAR_BEGIN_ERR,
+    MISS_ID_ERR,
+    REP_ID_ERR,
+    CHANGE_CONST_ERR,
+    USED_PROG_ID_ERR,
 } CODES_ERR;
 
 typedef struct{ CODES_LEX CODE; char NOM[20]; } TSym_Cour;
 
 // strucrure du token
-typedef struct { char NOM[20]; TSYM TIDF;} T_TAB_IDF;
+typedef struct { char NOM[20]; TSYM TIDF; int VAL; } T_TAB_IDF;
 
 TSym_Cour SYM_PRECED;
 TSym_Cour SYM_COUR;
 
-T_TAB_IDF TAB_IDFS[100];
+T_TAB_IDF TAB_IDFS[100]; // On stocke ici les identificateurs
+int c = 0; // Compteur pour les identificateurs
 
 FILE *fichier;
 
 char Car_Cour; // caractère courant
+char PROG_ID[20]; // mot courant
 
 // Déclaration des fonctions
 void VARS();
@@ -120,6 +126,9 @@ void CONSTS();
 void Sym_Suiv();
 void lire_mot();
 void lire_nombre();
+void Is_Defined(char *NOM);
+void Already_Defined(char *NOM);
+void Is_Const(char *NOM);
 
 // Definition des fonctions
 
@@ -361,6 +370,7 @@ void Test_Symbole(CODES_LEX cl, CODES_ERR COD_ERR)
 {
     if (SYM_COUR.CODE == cl)
     {
+        SYM_PRECED = SYM_COUR;
         Sym_Suiv();
     }
     else
@@ -371,6 +381,7 @@ void PROGRAM()
 {
     Test_Symbole(PROGRAM_TOKEN, PROGRAM_ERR);
     Test_Symbole(ID_TOKEN, ID_ERR);
+    strcpy(PROG_ID, SYM_PRECED.NOM);
     Test_Symbole(PV_TOKEN, PV_ERR);
     BLOCK();
 
@@ -399,28 +410,38 @@ void PROGRAM()
 void BLOCK()
 {
     CONSTS();
-
     VARS();
     INSTS();
+}
+
+void Already_Defined(char *NOM) {
+    for (int i=0; i < 100 && strcmp(TAB_IDFS[i].NOM, ""); i++) {
+        if (! strcmp(TAB_IDFS[i].NOM, NOM)) {
+            Erreur(REP_ID_ERR);
+        }
+    }
 }
 
 void CONSTS()
 {
     switch (SYM_COUR.CODE)
     {
-    case CONST_TOKEN:
-        Sym_Suiv();
-        Test_Symbole(ID_TOKEN, ID_ERR);
-        Test_Symbole(EG_TOKEN, EG_ERR);
-        Test_Symbole(NUM_TOKEN, NUM_ERR);
-        Test_Symbole(PV_TOKEN, PV_ERR);
-        while (SYM_COUR.CODE == ID_TOKEN)
-        {
+    case CONST_TOKEN: 
+        Sym_Suiv();     
+        do {
+            if (strcmp(SYM_COUR.NOM, PROG_ID) == 0) {
+                Erreur(USED_PROG_ID_ERR);
+            }
+            Already_Defined(SYM_COUR.NOM);
+            TAB_IDFS[c].TIDF = TCONST;
+            strcpy(TAB_IDFS[c].NOM, SYM_COUR.NOM);
             Sym_Suiv();
             Test_Symbole(EG_TOKEN, EG_ERR);
             Test_Symbole(NUM_TOKEN, NUM_ERR);
+            TAB_IDFS[c].VAL = atoi(SYM_PRECED.NOM);
             Test_Symbole(PV_TOKEN, PV_ERR);
-        };
+            c++;
+        } while (SYM_COUR.CODE == ID_TOKEN);
         break;
     case VAR_TOKEN:
         break;
@@ -437,13 +458,26 @@ void VARS()
     switch (SYM_COUR.CODE)
     {
     case VAR_TOKEN:
+        TAB_IDFS[c].TIDF = TVAR;
         Sym_Suiv();
         Test_Symbole(ID_TOKEN, ID_ERR);
-
+        if (strcmp(SYM_COUR.NOM, PROG_ID) == 0) {
+            Erreur(USED_PROG_ID_ERR);
+        }
+        Already_Defined(SYM_PRECED.NOM);
+        strcpy(TAB_IDFS[c].NOM, SYM_PRECED.NOM);
+        c++;
         while (SYM_COUR.CODE == VIR_TOKEN)
         {
             Sym_Suiv();
             Test_Symbole(ID_TOKEN, ID_ERR);
+            if (strcmp(SYM_COUR.NOM, PROG_ID) == 0) {
+                Erreur(USED_PROG_ID_ERR);
+            }
+            TAB_IDFS[c].TIDF = TVAR;
+            Already_Defined(SYM_PRECED.NOM);
+            strcpy(TAB_IDFS[c].NOM, SYM_PRECED.NOM);
+            c++;
         }
 
         Test_Symbole(PV_TOKEN, PV_ERR);
@@ -486,7 +520,6 @@ void INSTS()
 }
 
 void INST()
-
 {
     //INSTS | AFFEC | SI | TANTQUE | ECRIRE | LIRE | e
     switch (SYM_COUR.CODE)
@@ -514,10 +547,20 @@ void INST()
     }
 }
 
+void Is_Const(char *NOM) {
+    for (int i=0; i < 100 && strcmp(TAB_IDFS[i].NOM, ""); i++) {
+        if (!strcmp(TAB_IDFS[i].NOM, NOM) && (TAB_IDFS[i].TIDF == TCONST)) {
+            Erreur(CHANGE_CONST_ERR);
+        }
+    }
+}
+
 void AFFEC()
 {
     //ID := EXPR
     Test_Symbole(ID_TOKEN, ID_ERR);
+    Is_Defined(SYM_PRECED.NOM);
+    Is_Const(SYM_PRECED.NOM);
     Test_Symbole(AFF_TOKEN, AFF_ERR);
     EXPR();
 }
@@ -558,7 +601,7 @@ void LIRE()
     Test_Symbole(READ_TOKEN, READ_ERR);
     Test_Symbole(PO_TOKEN, PO_ERR);
     Test_Symbole(ID_TOKEN, ID_ERR);
-
+    Is_Defined(SYM_PRECED.NOM);
     while (SYM_COUR.CODE == VIR_TOKEN)
     {
         Sym_Suiv();
@@ -598,12 +641,22 @@ void TERM()
     }
 }
 
+void Is_Defined(char *NOM) {
+    for (int i=0; i < 100 && strcmp(TAB_IDFS[i].NOM, ""); i++) {
+        if (! strcmp(TAB_IDFS[i].NOM, NOM)) {
+            return;
+        }
+    }
+    Erreur(MISS_ID_ERR);
+}
+
 void FACT()
 {
     switch (SYM_COUR.CODE)
     {
     case ID_TOKEN:
         Test_Symbole(ID_TOKEN, ID_ERR);
+        Is_Defined(SYM_PRECED.NOM);
         break;
     case NUM_TOKEN:
         Test_Symbole(NUM_TOKEN, NUM_ERR);
@@ -671,7 +724,6 @@ void MULOP()
 
 int main()
 {
-
     fichier = fopen("pascal.txt", "r");
     if (fichier == NULL)
     {
@@ -684,7 +736,6 @@ int main()
     Sym_Suiv();
 
     PROGRAM();
-
     // printf("Program execution completed.2\n");
 
     // if (SYM_COUR.CODE == EOF_TOKEN)
@@ -698,7 +749,10 @@ int main()
     //     printf("Current Lexeme: %s\n", SYM_COUR.NOM);
     //     Sym_Suiv(); // Move this line inside the else block
     // }
-
+    printf("TABLE DES IDENTIFICATEURS\n");
+    for (int i=0; i < 100 && strcmp(TAB_IDFS[i].NOM, ""); i++) {
+        printf("%s \n", TAB_IDFS[i].NOM);
+    }
     fclose(fichier);
 
     return 0;

@@ -1,0 +1,9 @@
+program test11;
+const toto=21;
+var x, y;
+Begin
+x:=toto;
+test11:=22;
+toto:=2;
+read(y);
+end.
