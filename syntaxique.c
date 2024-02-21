@@ -99,6 +99,7 @@ int c = 0; // (OFFSET) Compteur pour les identificateurs
 FILE *fichier;
 FILE *p_output;
 CODES_LEX OPERATION;
+char OP_STR[20];
 
 char Car_Cour; // caractère courant
 char PROG_ID[20]; // mot courant
@@ -635,6 +636,7 @@ void COND()
     EXPR();
     RELOP();
     EXPR();
+    Generer_Arg(OP_STR);
 }
 
 void EXPR() // load the value of the expression in stack
@@ -703,16 +705,21 @@ void FACT()
 
 void RELOP()
 {
-    switch (SYM_COUR.CODE)
+    Sym_Suiv();
+    switch (SYM_PRECED.CODE)
     {
     case EG_TOKEN:
+        strcpy(OP_STR, "EQL"); break;
     case DIFF_TOKEN:
+        strcpy(OP_STR, "NEQ"); break;
     case INF_TOKEN:
+        strcpy(OP_STR, "LSS"); break;
     case SUP_TOKEN:
+        strcpy(OP_STR, "GTR"); break;
     case INFEG_TOKEN:
+        strcpy(OP_STR, "LEQ"); break;
     case SUPEG_TOKEN:
-        Test_Symbole(SYM_COUR.CODE, EG_ERR);
-        break;
+        strcpy(OP_STR, "GEQ"); break;
     default:
         Erreur(ERREUR_ERR);
         break;
