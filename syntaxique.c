@@ -88,18 +88,21 @@ typedef enum
 typedef struct{ CODES_LEX CODE; char NOM[20]; } TSym_Cour;
 
 // strucrure du token
-typedef struct { char NOM[20]; TSYM TIDF; int VAL; } T_TAB_IDF;
+typedef struct { char NOM[20]; TSYM TIDF; int VAL; int ADRESSE; } T_TAB_IDF;
 
 TSym_Cour SYM_PRECED;
 TSym_Cour SYM_COUR;
 
 T_TAB_IDF TAB_IDFS[100]; // On stocke ici les identificateurs
-int c = 0; // Compteur pour les identificateurs
+int c = 0; // (OFFSET) Compteur pour les identificateurs
 
 FILE *fichier;
+FILE *p_output;
+CODES_LEX OPERATION;
 
 char Car_Cour; // caractère courant
 char PROG_ID[20]; // mot courant
+int ADRESSE;
 
 // Déclaration des fonctions
 void VARS();
@@ -126,9 +129,11 @@ void CONSTS();
 void Sym_Suiv();
 void lire_mot();
 void lire_nombre();
-void Is_Defined(char *NOM);
+int Is_Defined(char *NOM);
 void Already_Defined(char *NOM);
-void Is_Const(char *NOM);
+void Is_Const(int INDEX);
+void Generer_Arg(char *INST);
+void Generer_Args(char *INST, int VAL_ADR);
 
 // Definition des fonctions
 
@@ -382,9 +387,11 @@ void PROGRAM()
     Test_Symbole(PROGRAM_TOKEN, PROGRAM_ERR);
     Test_Symbole(ID_TOKEN, ID_ERR);
     strcpy(PROG_ID, SYM_PRECED.NOM);
+    // Gén p-code: debut du programme
+    Generer_Args("INT", c);
     Test_Symbole(PV_TOKEN, PV_ERR);
     BLOCK();
-
+    Generer_Arg("HLT");
     //Test_Symbole(PT_TOKEN, PT_ERR);
     // Check for the dot after BLOCK
     if (SYM_COUR.CODE == PT_TOKEN)
@@ -440,6 +447,10 @@ void CONSTS()
             Test_Symbole(NUM_TOKEN, NUM_ERR);
             TAB_IDFS[c].VAL = atoi(SYM_PRECED.NOM);
             Test_Symbole(PV_TOKEN, PV_ERR);
+            // Génération du p-code pour l'affectation
+            Generer_Args("LDA", c);
+            Generer_Args("LDI", TAB_IDFS[c].VAL);
+            Generer_Arg("STO");
             c++;
         } while (SYM_COUR.CODE == ID_TOKEN);
         break;
@@ -466,6 +477,7 @@ void VARS()
         }
         Already_Defined(SYM_PRECED.NOM);
         strcpy(TAB_IDFS[c].NOM, SYM_PRECED.NOM);
+        // Réservation implicite de l'espace mémoire
         c++;
         while (SYM_COUR.CODE == VIR_TOKEN)
         {
@@ -547,11 +559,9 @@ void INST()
     }
 }
 
-void Is_Const(char *NOM) {
-    for (int i=0; i < 100 && strcmp(TAB_IDFS[i].NOM, ""); i++) {
-        if (!strcmp(TAB_IDFS[i].NOM, NOM) && (TAB_IDFS[i].TIDF == TCONST)) {
-            Erreur(CHANGE_CONST_ERR);
-        }
+void Is_Const(int INDEX) {
+    if (TAB_IDFS[INDEX].TIDF == TCONST) {
+        Erreur(CHANGE_CONST_ERR);
     }
 }
 
@@ -559,10 +569,13 @@ void AFFEC()
 {
     //ID := EXPR
     Test_Symbole(ID_TOKEN, ID_ERR);
-    Is_Defined(SYM_PRECED.NOM);
-    Is_Const(SYM_PRECED.NOM);
+    ADRESSE = Is_Defined(SYM_PRECED.NOM);
+    Is_Const(ADRESSE);
     Test_Symbole(AFF_TOKEN, AFF_ERR);
+    // Gén p-code: récupération de l'adresse
+    Generer_Args("LDA", ADRESSE);
     EXPR();
+    Generer_Arg("STO");
 }
 
 void SI()
@@ -586,11 +599,12 @@ void ECRIRE()
     Test_Symbole(WRITE_TOKEN, WRITE_ERR);
     Test_Symbole(PO_TOKEN, PO_ERR);
     EXPR();
-
+    Generer_Arg("PRN");
     while (SYM_COUR.CODE == VIR_TOKEN)
     {
         Sym_Suiv();
         EXPR();
+        Generer_Arg("PRN");
     }
 
     Test_Symbole(PF_TOKEN, PF_ERR);
@@ -618,36 +632,42 @@ void COND()
     EXPR();
 }
 
-void EXPR()
+void EXPR() // load the value of the expression in stack
 {
     //TERM { ADDOP TERM }
     TERM();
 
     while (SYM_COUR.CODE == PLUS_TOKEN || SYM_COUR.CODE == MOINS_TOKEN)
     {
+        OPERATION = SYM_COUR.CODE;
         ADDOP();
         TERM();
+        if (OPERATION = PLUS_TOKEN) {Generer_Arg("ADD");}
+        else {Generer_Arg("SUB");}
     }
 }
 
 void TERM()
 {
     FACT();
-
     while (SYM_COUR.CODE == MULT_TOKEN || SYM_COUR.CODE == DIV_TOKEN)
     {
+        OPERATION = SYM_COUR.CODE;
         MULOP();
         FACT();
+        if (OPERATION = MULT_TOKEN) {Generer_Arg("MUL");}
+        else {Generer_Arg("DIV");}
     }
 }
 
-void Is_Defined(char *NOM) {
+int Is_Defined(char *NOM) {
     for (int i=0; i < 100 && strcmp(TAB_IDFS[i].NOM, ""); i++) {
         if (! strcmp(TAB_IDFS[i].NOM, NOM)) {
-            return;
+            return i;
         }
     }
     Erreur(MISS_ID_ERR);
+    return -1;
 }
 
 void FACT()
@@ -656,10 +676,14 @@ void FACT()
     {
     case ID_TOKEN:
         Test_Symbole(ID_TOKEN, ID_ERR);
-        Is_Defined(SYM_PRECED.NOM);
+        ADRESSE = Is_Defined(SYM_PRECED.NOM);
+        // Gén p-code: récupération de la valeur
+        Generer_Args("LDA", ADRESSE);
+        Generer_Arg("LDV");
         break;
     case NUM_TOKEN:
         Test_Symbole(NUM_TOKEN, NUM_ERR);
+        Generer_Args("LDI", atoi(SYM_PRECED.NOM));
         break;
     case PO_TOKEN:
         Test_Symbole(PO_TOKEN, PO_ERR);
@@ -722,10 +746,19 @@ void MULOP()
     }
 }
 
+void Generer_Arg(char *INST) {
+    fprintf(p_output, "%s\n", INST);
+}
+
+void Generer_Args(char *INST, int VAL_ADR) {
+    fprintf(p_output, "%s\t%d\n", INST, VAL_ADR);
+}
+
 int main()
 {
     fichier = fopen("pascal.txt", "r");
-    if (fichier == NULL)
+    p_output = fopen("output.txt", "w");
+    if (fichier == NULL || p_output == NULL)
     {
         perror("Erreur lors de l'ouverture du fichier");
         return 1;
