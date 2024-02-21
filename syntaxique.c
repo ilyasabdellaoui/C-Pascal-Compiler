@@ -766,14 +766,37 @@ void Generer_Args(char *INST, int VAL_ADR) {
     fprintf(p_output, "%s\t%d\n", INST, VAL_ADR);
 }
 
-int main()
-{
-    fichier = fopen("pascal.txt", "r");
-    p_output = fopen("output.txt", "w");
-    if (fichier == NULL || p_output == NULL)
-    {
-        perror("Erreur lors de l'ouverture du fichier");
-        return 1;
+int main(int argc, char *argv[]) {
+    if (argc < 2) {
+        fprintf(stderr, "Utilisation : %s <fichier_pascal>\n", argv[0]);
+        return EXIT_FAILURE;
+    }
+
+    fichier = fopen(argv[1], "r");
+    if (fichier == NULL) {
+        fprintf(stderr, "Erreur : Impossible d'ouvrir le fichier '%s' en lecture.\n", argv[1]);
+        return EXIT_FAILURE;
+    }
+
+    // L'extension du fichier pascal va etre remplacée par _output.txt
+    char *extension = strrchr(argv[1], '.'); 
+    char output_filename[100]; 
+    if (extension != NULL) {
+        // Copier le nom sans l'extension
+        strncpy(output_filename, argv[1], extension - argv[1]); 
+        output_filename[extension - argv[1]] = '\0';
+    } else {
+        // Copier le nom complet si pas d'extension
+        strcpy(output_filename, argv[1]); 
+    }
+    strcat(output_filename, "_output.txt");
+
+    // Ouvrir le fichier de sortie en écriture
+    p_output = fopen(output_filename, "w");
+    if (p_output == NULL) {
+        fprintf(stderr, "Erreur : Impossible de créer le fichier de sortie.\n");
+        fclose(fichier);
+        return EXIT_FAILURE;
     }
 
     // PREMIER_SYM();
