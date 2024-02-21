@@ -104,6 +104,7 @@ char OP_STR[20];
 char Car_Cour; // caractère courant
 char PROG_ID[20]; // mot courant
 int ADRESSE;
+int label_cour = 0;
 
 // Déclaration des fonctions
 void VARS();
@@ -239,6 +240,7 @@ void lire_nombre()
 
 void Sym_Suiv()
 {
+    SYM_PRECED = SYM_COUR;
     while (Car_Cour == ' ' || Car_Cour == '\n' || Car_Cour == '\t')
     {
         Lire_Car();
@@ -583,8 +585,10 @@ void SI()
 {
     Test_Symbole(IF_TOKEN, IF_ERR);
     COND();
+    Generer_Args("BZE", label_cour);
     Test_Symbole(THEN_TOKEN, THEN_ERR);
     INST();
+    Generer_Args("LABEL", label_cour);
 }
 
 void TANTQUE()
@@ -698,6 +702,7 @@ void FACT()
         Test_Symbole(PF_TOKEN, PF_ERR);
         break;
     default:
+        printf("error here\n");
         Erreur(ERREUR_ERR);
         break;
     }
@@ -721,6 +726,7 @@ void RELOP()
     case SUPEG_TOKEN:
         strcpy(OP_STR, "GEQ"); break;
     default:
+        printf("error here 2\n");
         Erreur(ERREUR_ERR);
         break;
     }
@@ -737,6 +743,7 @@ void ADDOP()
         Test_Symbole(SYM_COUR.CODE, MOINS_ERR);
         break;
     default:
+        printf("error here 3\n");
         Erreur(ERREUR_ERR);
         break;
     }
@@ -753,6 +760,7 @@ void MULOP()
         Test_Symbole(SYM_COUR.CODE, DIV_ERR);
         break;
     default:
+        printf("error here 4\n");
         Erreur(ERREUR_ERR);
         break;
     }
