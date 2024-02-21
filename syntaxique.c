@@ -3,61 +3,20 @@
 #include <string.h>
 #include <ctype.h>
 #include "tokens.h"
-
-// erreur types
-typedef enum {
-    ID_ERR,
-    PROGRAM_ERR,
-    CONST_ERR,
-    VAR_ERR,
-    BEGIN_ERR,
-    END_ERR,
-    IF_ERR,
-    THEN_ERR,
-    WHILE_ERR,
-    DO_ERR,
-    READ_ERR,
-    WRITE_ERR,
-    PV_ERR,
-    PT_ERR,
-    PLUS_ERR,
-    MOINS_ERR,
-    MULT_ERR,
-    DIV_ERR,
-    VIR_ERR,
-    AFF_ERR,
-    INF_ERR,
-    INFEG_ERR,
-    SUP_ERR,
-    SUPEG_ERR,
-    DIFF_ERR,
-    PO_ERR,
-    PF_ERR,
-    FIN_ERR,
-    NUM_ERR,
-    ERREUR_ERR,
-    EOF_ERR,
-    EG_ERR,
-    CONST_VAR_BEGIN_ERR,
-    VAR_BEGIN_ERR,
-    MISS_ID_ERR,
-    REP_ID_ERR,
-    CHANGE_CONST_ERR,
-    USED_PROG_ID_ERR,
-} CODES_ERR;
+#include "errors.h"
 
 TSym_Cour SYM_PRECED;
 TSym_Cour SYM_COUR;
 
 T_TAB_IDF TAB_IDFS[100]; // On stocke ici les identificateurs
-int c = 0; // (OFFSET) Compteur pour les identificateurs
+int c = 0;               // (OFFSET) Compteur pour les identificateurs
 
 FILE *fichier;
 FILE *p_output;
 CODES_LEX OPERATION;
 char OP_STR[20];
 
-char Car_Cour; // caractère courant
+char Car_Cour;    // caractère courant
 char PROG_ID[20]; // mot courant
 int ADRESSE;
 
@@ -94,8 +53,7 @@ void Generer_Args(char *INST, int VAL_ADR);
 
 // Definition des fonctions
 
-void lire_mot()
-{
+void lire_mot() {
     char mot[20];
     int indice = 0;
 
@@ -104,8 +62,7 @@ void lire_mot()
     Lire_Car();
 
     // Lecture des caractères suivants (lettres ou chiffres)
-    while (isalpha(Car_Cour) || isdigit(Car_Cour))
-    {
+    while (isalpha(Car_Cour) || isdigit(Car_Cour)) {
         mot[indice++] = Car_Cour;
         Lire_Car();
     }
@@ -114,52 +71,29 @@ void lire_mot()
     mot[indice] = '\0';
 
     // Vérifier si le mot est un mot-clé
-    if (strcasecmp(mot, "program") == 0)
-    {
+    if (strcasecmp(mot, "program") == 0) {
         SYM_COUR.CODE = PROGRAM_TOKEN;
-    }
-    else if (strcasecmp(mot, "const") == 0)
-    {
+    } else if (strcasecmp(mot, "const") == 0) {
         SYM_COUR.CODE = CONST_TOKEN;
-    }
-    else if (strcasecmp(mot, "var") == 0)
-    {
+    } else if (strcasecmp(mot, "var") == 0) {
         SYM_COUR.CODE = VAR_TOKEN;
-    }
-    else if (strcasecmp(mot, "begin") == 0)
-    {
+    } else if (strcasecmp(mot, "begin") == 0) {
         SYM_COUR.CODE = BEGIN_TOKEN;
-    }
-    else if (strcasecmp(mot, "end") == 0)
-    {
+    } else if (strcasecmp(mot, "end") == 0) {
         SYM_COUR.CODE = END_TOKEN;
-    }
-    else if (strcasecmp(mot, "if") == 0)
-    {
+    } else if (strcasecmp(mot, "if") == 0) {
         SYM_COUR.CODE = IF_TOKEN;
-    }
-    else if (strcasecmp(mot, "then") == 0)
-    {
+    } else if (strcasecmp(mot, "then") == 0) {
         SYM_COUR.CODE = THEN_TOKEN;
-    }
-    else if (strcasecmp(mot, "while") == 0)
-    {
+    } else if (strcasecmp(mot, "while") == 0) {
         SYM_COUR.CODE = WHILE_TOKEN;
-    }
-    else if (strcasecmp(mot, "do") == 0)
-    {
+    } else if (strcasecmp(mot, "do") == 0) {
         SYM_COUR.CODE = DO_TOKEN;
-    }
-    else if (strcasecmp(mot, "read") == 0)
-    {
+    } else if (strcasecmp(mot, "read") == 0) {
         SYM_COUR.CODE = READ_TOKEN;
-    }
-    else if (strcasecmp(mot, "write") == 0)
-    {
+    } else if (strcasecmp(mot, "write") == 0) {
         SYM_COUR.CODE = WRITE_TOKEN;
-    }
-    else
-    {
+    } else {
         // TO DO: Specify the identifier type on the declaration phase
         // TO DO: Prevent re
         SYM_COUR.CODE = ID_TOKEN;
@@ -169,8 +103,7 @@ void lire_mot()
     strcpy(SYM_COUR.NOM, mot);
 }
 
-void lire_nombre()
-{
+void lire_nombre() {
     char nombre[11];
     int indice = 0;
 
@@ -193,8 +126,7 @@ void lire_nombre()
     strcpy(SYM_COUR.NOM, nombre);
 }
 
-void Sym_Suiv()
-{
+void Sym_Suiv() {
     while (Car_Cour == ' ' || Car_Cour == '\n' || Car_Cour == '\t')
     {
         Lire_Car();
@@ -315,32 +247,26 @@ void Sym_Suiv()
     }
 }
 
-void Lire_Car()
-{
+void Lire_Car() {
     Car_Cour = fgetc(fichier);
 }
 
-void Erreur(CODES_ERR code)
-{
-    printf("Erreur: %d\n", code);
+void Erreur(CODES_ERR code) {
+    printf("Erreur: %s\n", getError(code));
     printf("Current Token: %d\n", SYM_COUR.CODE);
     printf("Current Lexeme: %s\n", SYM_COUR.NOM);
     exit(EXIT_FAILURE);
 }
 
-void Test_Symbole(CODES_LEX cl, CODES_ERR COD_ERR)
-{
-    if (SYM_COUR.CODE == cl)
-    {
+void Test_Symbole(CODES_LEX cl, CODES_ERR COD_ERR) {
+    if (SYM_COUR.CODE == cl) {
         SYM_PRECED = SYM_COUR;
         Sym_Suiv();
-    }
-    else
+    } else
         Erreur(COD_ERR);
 }
 
-void PROGRAM()
-{
+void PROGRAM() {
     Test_Symbole(PROGRAM_TOKEN, PROGRAM_ERR);
     Test_Symbole(ID_TOKEN, ID_ERR);
     strcpy(PROG_ID, SYM_PRECED.NOM);
@@ -349,21 +275,18 @@ void PROGRAM()
     Test_Symbole(PV_TOKEN, PV_ERR);
     BLOCK();
     Generer_Arg("HLT");
-    //Test_Symbole(PT_TOKEN, PT_ERR);
-    // Check for the dot after BLOCK
-    if (SYM_COUR.CODE == PT_TOKEN)
-    {
+    // Test_Symbole(PT_TOKEN, PT_ERR);
+    //  Check for the dot after BLOCK
+    if (SYM_COUR.CODE == PT_TOKEN) {
         // Sym_Suiv(); // Consume the dot
         printf("Program execution completed.\nBRAVO: le programme est correcte!!!\n");
     }
-    else
-    {
+    else {
         Erreur(PT_ERR);
         printf("PAS BRAVO: fin de programme erronée!!!!\n");
 
         // Add this line to consume symbols until the end of the file
-        while (SYM_COUR.CODE != FIN_TOKEN)
-        {
+        while (SYM_COUR.CODE != FIN_TOKEN) {
             printf("Current Token: %d\n", SYM_COUR.CODE);
             printf("Current Lexeme: %s\n", SYM_COUR.NOM);
             Sym_Suiv();
@@ -371,27 +294,24 @@ void PROGRAM()
     }
 }
 
-void BLOCK()
-{
+void BLOCK() {
     CONSTS();
     VARS();
     INSTS();
 }
 
 void Already_Defined(char *NOM) {
-    for (int i=0; i < 100 && strcmp(TAB_IDFS[i].NOM, ""); i++) {
-        if (! strcmp(TAB_IDFS[i].NOM, NOM)) {
+    for (int i = 0; i < 100 && strcmp(TAB_IDFS[i].NOM, ""); i++) {
+        if (!strcmp(TAB_IDFS[i].NOM, NOM)) {
             Erreur(REP_ID_ERR);
         }
     }
 }
 
-void CONSTS()
-{
-    switch (SYM_COUR.CODE)
-    {
-    case CONST_TOKEN: 
-        Sym_Suiv();     
+void CONSTS() {
+    switch (SYM_COUR.CODE) {
+    case CONST_TOKEN:
+        Sym_Suiv();
         do {
             if (strcmp(SYM_COUR.NOM, PROG_ID) == 0) {
                 Erreur(USED_PROG_ID_ERR);
@@ -421,10 +341,8 @@ void CONSTS()
     }
 }
 
-void VARS()
-{
-    switch (SYM_COUR.CODE)
-    {
+void VARS() {
+    switch (SYM_COUR.CODE) {
     case VAR_TOKEN:
         TAB_IDFS[c].TIDF = TVAR;
         Sym_Suiv();
@@ -436,8 +354,7 @@ void VARS()
         strcpy(TAB_IDFS[c].NOM, SYM_PRECED.NOM);
         // Réservation implicite de l'espace mémoire
         c++;
-        while (SYM_COUR.CODE == VIR_TOKEN)
-        {
+        while (SYM_COUR.CODE == VIR_TOKEN) {
             Sym_Suiv();
             Test_Symbole(ID_TOKEN, ID_ERR);
             if (strcmp(SYM_COUR.NOM, PROG_ID) == 0) {
@@ -459,60 +376,50 @@ void VARS()
     }
 }
 
-void INSTS()
-{
-    //begin INST { ; INST } end
-    if (SYM_COUR.CODE == BEGIN_TOKEN)
-    {
+void INSTS() {
+    // begin INST { ; INST } end
+    if (SYM_COUR.CODE == BEGIN_TOKEN) {
         Sym_Suiv();
         INST();
 
-        while (SYM_COUR.CODE == PV_TOKEN)
-        {
+        while (SYM_COUR.CODE == PV_TOKEN) {
             Sym_Suiv();
             INST();
         }
 
-        if (SYM_COUR.CODE == END_TOKEN)
-        {
+        if (SYM_COUR.CODE == END_TOKEN) {
             Sym_Suiv();
-        }
-        else
-        {
+        } else {
             Erreur(FIN_ERR);
         }
-    }
-    else
-    {
+    } else {
         Erreur(BEGIN_ERR);
     }
 }
 
-void INST()
-{
-    //INSTS | AFFEC | SI | TANTQUE | ECRIRE | LIRE | e
-    switch (SYM_COUR.CODE)
-    {
-    case BEGIN_TOKEN:
-        INSTS();
-        break;
-    case ID_TOKEN:
-        AFFEC();
-        break;
-    case IF_TOKEN:
-        SI();
-        break;
-    case WHILE_TOKEN:
-        TANTQUE();
-        break;
-    case WRITE_TOKEN:
-        ECRIRE();
-        break;
-    case READ_TOKEN:
-        LIRE();
-        break;
-    default:
-        break;
+void INST() {
+    // INSTS | AFFEC | SI | TANTQUE | ECRIRE | LIRE | e
+    switch (SYM_COUR.CODE) {
+        case BEGIN_TOKEN:
+            INSTS();
+            break;
+        case ID_TOKEN:
+            AFFEC();
+            break;
+        case IF_TOKEN:
+            SI();
+            break;
+        case WHILE_TOKEN:
+            TANTQUE();
+            break;
+        case WRITE_TOKEN:
+            ECRIRE();
+            break;
+        case READ_TOKEN:
+            LIRE();
+            break;
+        default:
+            break;
     }
 }
 
@@ -522,9 +429,8 @@ void Is_Const(int INDEX) {
     }
 }
 
-void AFFEC()
-{
-    //ID := EXPR
+void AFFEC() {
+    // ID := EXPR
     Test_Symbole(ID_TOKEN, ID_ERR);
     ADRESSE = Is_Defined(SYM_PRECED.NOM);
     Is_Const(ADRESSE);
@@ -535,30 +441,26 @@ void AFFEC()
     Generer_Arg("STO");
 }
 
-void SI()
-{
+void SI() {
     Test_Symbole(IF_TOKEN, IF_ERR);
     COND();
     Test_Symbole(THEN_TOKEN, THEN_ERR);
     INST();
 }
 
-void TANTQUE()
-{
+void TANTQUE() {
     Test_Symbole(WHILE_TOKEN, WHILE_ERR);
     COND();
     Test_Symbole(DO_TOKEN, DO_ERR);
     INST();
 }
 
-void ECRIRE()
-{
+void ECRIRE() {
     Test_Symbole(WRITE_TOKEN, WRITE_ERR);
     Test_Symbole(PO_TOKEN, PO_ERR);
     EXPR();
     Generer_Arg("PRN");
-    while (SYM_COUR.CODE == VIR_TOKEN)
-    {
+    while (SYM_COUR.CODE == VIR_TOKEN) {
         Sym_Suiv();
         EXPR();
         Generer_Arg("PRN");
@@ -567,16 +469,14 @@ void ECRIRE()
     Test_Symbole(PF_TOKEN, PF_ERR);
 }
 
-void LIRE()
-{
+void LIRE() {
     Test_Symbole(READ_TOKEN, READ_ERR);
     Test_Symbole(PO_TOKEN, PO_ERR);
     Test_Symbole(ID_TOKEN, ID_ERR);
     ADRESSE = Is_Defined(SYM_PRECED.NOM);
     Generer_Args("LDA", ADRESSE);
     Generer_Arg("INN");
-    while (SYM_COUR.CODE == VIR_TOKEN)
-    {
+    while (SYM_COUR.CODE == VIR_TOKEN) {
         Sym_Suiv();
         Test_Symbole(ID_TOKEN, ID_ERR);
         ADRESSE = Is_Defined(SYM_PRECED.NOM);
@@ -587,45 +487,47 @@ void LIRE()
     Test_Symbole(PF_TOKEN, PF_ERR);
 }
 
-void COND()
-{
+void COND() {
     EXPR();
     RELOP();
     EXPR();
     Generer_Arg(OP_STR);
 }
 
-void EXPR() // load the value of the expression in stack
-{
-    //TERM { ADDOP TERM }
+// load the value of the expression in stack
+void EXPR() {
+    // TERM { ADDOP TERM }
     TERM();
 
-    while (SYM_COUR.CODE == PLUS_TOKEN || SYM_COUR.CODE == MOINS_TOKEN)
-    {
+    while (SYM_COUR.CODE == PLUS_TOKEN || SYM_COUR.CODE == MOINS_TOKEN) {
         OPERATION = SYM_COUR.CODE;
         ADDOP();
         TERM();
-        if (OPERATION = PLUS_TOKEN) {Generer_Arg("ADD");}
-        else {Generer_Arg("SUB");}
+        if (OPERATION = PLUS_TOKEN) {
+            Generer_Arg("ADD");
+        } else {
+            Generer_Arg("SUB");
+        }
     }
 }
 
-void TERM()
-{
+void TERM() {
     FACT();
-    while (SYM_COUR.CODE == MULT_TOKEN || SYM_COUR.CODE == DIV_TOKEN)
-    {
+    while (SYM_COUR.CODE == MULT_TOKEN || SYM_COUR.CODE == DIV_TOKEN) {
         OPERATION = SYM_COUR.CODE;
         MULOP();
         FACT();
-        if (OPERATION = MULT_TOKEN) {Generer_Arg("MUL");}
-        else {Generer_Arg("DIV");}
+        if (OPERATION = MULT_TOKEN) {
+            Generer_Arg("MUL");
+        } else {
+            Generer_Arg("DIV");
+        }
     }
 }
 
 int Is_Defined(char *NOM) {
-    for (int i=0; i < 100 && strcmp(TAB_IDFS[i].NOM, ""); i++) {
-        if (! strcmp(TAB_IDFS[i].NOM, NOM)) {
+    for (int i = 0; i < 100 && strcmp(TAB_IDFS[i].NOM, ""); i++) {
+        if (!strcmp(TAB_IDFS[i].NOM, NOM)) {
             return i;
         }
     }
@@ -633,10 +535,8 @@ int Is_Defined(char *NOM) {
     return -1;
 }
 
-void FACT()
-{
-    switch (SYM_COUR.CODE)
-    {
+void FACT() {
+    switch (SYM_COUR.CODE) {
     case ID_TOKEN:
         Test_Symbole(ID_TOKEN, ID_ERR);
         ADRESSE = Is_Defined(SYM_PRECED.NOM);
@@ -659,31 +559,35 @@ void FACT()
     }
 }
 
-void RELOP()
-{
+void RELOP() {
     Sym_Suiv();
     switch (SYM_PRECED.CODE)
     {
     case EG_TOKEN:
-        strcpy(OP_STR, "EQL"); break;
+        strcpy(OP_STR, "EQL");
+        break;
     case DIFF_TOKEN:
-        strcpy(OP_STR, "NEQ"); break;
+        strcpy(OP_STR, "NEQ");
+        break;
     case INF_TOKEN:
-        strcpy(OP_STR, "LSS"); break;
+        strcpy(OP_STR, "LSS");
+        break;
     case SUP_TOKEN:
-        strcpy(OP_STR, "GTR"); break;
+        strcpy(OP_STR, "GTR");
+        break;
     case INFEG_TOKEN:
-        strcpy(OP_STR, "LEQ"); break;
+        strcpy(OP_STR, "LEQ");
+        break;
     case SUPEG_TOKEN:
-        strcpy(OP_STR, "GEQ"); break;
+        strcpy(OP_STR, "GEQ");
+        break;
     default:
         Erreur(ERREUR_ERR);
         break;
     }
 }
 
-void ADDOP()
-{
+void ADDOP() {
     switch (SYM_COUR.CODE)
     {
     case PLUS_TOKEN:
@@ -698,8 +602,7 @@ void ADDOP()
     }
 }
 
-void MULOP()
-{
+void MULOP() {
     switch (SYM_COUR.CODE)
     {
     case MULT_TOKEN:
@@ -735,15 +638,15 @@ int main(int argc, char *argv[]) {
     }
 
     // L'extension du fichier pascal va etre remplacée par _output.txt
-    char *extension = strrchr(argv[1], '.'); 
-    char output_filename[100]; 
+    char *extension = strrchr(argv[1], '.');
+    char output_filename[100];
     if (extension != NULL) {
         // Copier le nom sans l'extension
-        strncpy(output_filename, argv[1], extension - argv[1]); 
+        strncpy(output_filename, argv[1], extension - argv[1]);
         output_filename[extension - argv[1]] = '\0';
     } else {
         // Copier le nom complet si pas d'extension
-        strcpy(output_filename, argv[1]); 
+        strcpy(output_filename, argv[1]);
     }
     strcat(output_filename, "_output.txt");
 
@@ -774,7 +677,7 @@ int main(int argc, char *argv[]) {
     //     Sym_Suiv(); // Move this line inside the else block
     // }
     printf("TABLE DES IDENTIFICATEURS\n");
-    for (int i=0; i < 100 && strcmp(TAB_IDFS[i].NOM, ""); i++) {
+    for (int i = 0; i < 100 && strcmp(TAB_IDFS[i].NOM, ""); i++) {
         printf("%s \n", TAB_IDFS[i].NOM);
     }
     fclose(fichier);
