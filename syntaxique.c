@@ -615,11 +615,16 @@ void LIRE()
     Test_Symbole(READ_TOKEN, READ_ERR);
     Test_Symbole(PO_TOKEN, PO_ERR);
     Test_Symbole(ID_TOKEN, ID_ERR);
-    Is_Defined(SYM_PRECED.NOM);
+    ADRESSE = Is_Defined(SYM_PRECED.NOM);
+    Generer_Args("LDA", ADRESSE);
+    Generer_Arg("INN");
     while (SYM_COUR.CODE == VIR_TOKEN)
     {
         Sym_Suiv();
         Test_Symbole(ID_TOKEN, ID_ERR);
+        ADRESSE = Is_Defined(SYM_PRECED.NOM);
+        Generer_Args("LDA", ADRESSE);
+        Generer_Arg("INN");
     }
 
     Test_Symbole(PF_TOKEN, PF_ERR);
