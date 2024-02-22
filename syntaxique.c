@@ -19,6 +19,8 @@ char OP_STR[20];
 char Car_Cour;    // caractère courant
 char PROG_ID[20]; // mot courant
 int ADRESSE;
+int if_label_cour = 0;
+int while_label_cour = 1;
 
 // Declaration des fonctions
 void VARS();
@@ -112,8 +114,7 @@ void lire_nombre() {
     Lire_Car();
 
     // Lecture des chiffres suivants
-    while (isdigit(Car_Cour))
-    {
+    while (isdigit(Car_Cour)) {
         nombre[indice++] = Car_Cour;
         Lire_Car();
     }
@@ -129,6 +130,7 @@ void lire_nombre() {
 int nbrLigne_Cour = 1;
 
 void Sym_Suiv() {
+    SYM_PRECED = SYM_COUR;
     while (Car_Cour == ' ' || Car_Cour == '\n' || Car_Cour == '\t')
     {
         if (Car_Cour == '\n') {
@@ -451,15 +453,23 @@ void AFFEC() {
 void SI() {
     Test_Symbole(IF_TOKEN, IF_ERR);
     COND();
+    Generer_Args("BZE", if_label_cour);
     Test_Symbole(THEN_TOKEN, THEN_ERR);
     INST();
+    Generer_Args("LABEL", if_label_cour);
+    if_label_cour += 3;
 }
 
 void TANTQUE() {
     Test_Symbole(WHILE_TOKEN, WHILE_ERR);
+    Generer_Args("LABEL", while_label_cour);
     COND();
+    Generer_Args("BZE", while_label_cour + 1);
     Test_Symbole(DO_TOKEN, DO_ERR);
     INST();
+    Generer_Args("BRN", while_label_cour);
+    Generer_Args("BZE", while_label_cour + 1);
+    while_label_cour += 3;
 }
 
 void ECRIRE() {
