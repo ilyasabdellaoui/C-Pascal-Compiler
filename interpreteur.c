@@ -223,7 +223,7 @@ void INTER_INST(INST INST)
     val1 = MEM[SP--];
     if (val2 == 0)
     {
-      printf("Erreur : Division par zéro\n");
+      printf("Erreur : Division par zero\n");
       exit(1);
     }
     MEM[++SP] = val1 / val2;
@@ -350,7 +350,7 @@ int main(int argc, char *argv[])
   // for (int i=0; i<14; i++) {
   //   printf("PCODE: %d\t%d\n", PCODE[i].MNE, PCODE[i].SUITE);
   // }
-  for (int i=0; i<5; i++) printf("%d\n", MEM[i]);
+  //for (int i=0; i<5; i++) printf("%d\n", MEM[i]);
   free(line);
   fclose(fp_code);
 

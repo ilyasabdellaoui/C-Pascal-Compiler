@@ -165,13 +165,13 @@ void Sym_Suiv() {
             Lire_Car();
             break;
 
-        case '*':
-            SYM_COUR.CODE = MULT_TOKEN;
+        case '/':
+            SYM_COUR.CODE = DIV_TOKEN;
             Lire_Car();
             break;
 
-        case '/':
-            SYM_COUR.CODE = DIV_TOKEN;
+        case '*':
+            SYM_COUR.CODE = MULT_TOKEN;
             Lire_Car();
             break;
 
@@ -531,13 +531,13 @@ void EXPR() {
 
 void TERM() {
     FACT();
-    while (SYM_COUR.CODE == MULT_TOKEN || SYM_COUR.CODE == DIV_TOKEN) {
+    while (SYM_COUR.CODE == DIV_TOKEN || SYM_COUR.CODE == MULT_TOKEN) {
         OPERATION = SYM_COUR.CODE;
         MULOP();
         FACT();
-        if (OPERATION = MULT_TOKEN) {
+        if (OPERATION == MULT_TOKEN) {
             Generer_Arg("MUL");
-        } else {
+        } else if (OPERATION = DIV_TOKEN){
             Generer_Arg("DIV");
         }
     }
