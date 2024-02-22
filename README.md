@@ -1,5 +1,26 @@
 # C-Pascal-Compiler
-Lightweight Pascal compiler implemented in C
+Ce dépôt contient le code source d'un compilateur simple de pascal en C. Le compilateur est capable de générer du code intermédiaire (p-code) à partir d'un programme pascal. Le p-code est ensuite exécuté par une machine virtuelle.
+
+## Fonctionnalités
+
+* Analyse lexicale
+* Analyse syntaxique
+* Analyse sémantique
+* Génération de P-code
+* Interprétation du P-code
+
+## Structure du projet
+
+* `compilateur.c`: contient le code source du compilateur (analyseur lexical, syntaxique, sémantique, et generateur du p-code).
+* `tokens.h`: Définition des tokens du langage
+* `errors.h`: Définition des erreurs du langage
+* `run.c`: Code pour exécuter le compilateur
+
+## Exemple d'exécution
+
+1. Ecriture d'un programme pascal dans le dossier `\tests` (par exemple `code1.p`).
+2. Compilation du compilateur avec la commande `gcc run.c -o run`.
+3. Exécution du compilateur avec la commande `run code1.p`.
 
 
 ## Définitions des symboles non-terminaux
@@ -27,6 +48,14 @@ Lightweight Pascal compiler implemented in C
 - `Lettre` ::= a | b |..| z | A |..| Z
 
 Les symboles non-terminaux sont en majuscules et représentent des concepts syntaxiques, tandis que les terminaux sont en minuscules et représentent des éléments de base tels que des mots-clés, des opérateurs, des identifiants et des nombres. Le symbole ε (epsilon) représente une production vide.
+
+## **Règles sémantiques**
+
+- **Règle 1**: Toutes les déclarations dans `CONSTS` et `VARS`
+- **Règle 2**: PAS DE DOUBLE DÉCLARATIONS
+- **Règle 3**: Après `BEGIN`, tous les symboles doivent être déjà déclarés
+- **Règle 4**: Une constante ne peut changer de valeur dans le programme
+- **Règle 5**: L'ID du programme ne peut être utilisé dans le programme
 
 ## Jeu d'instructions
 

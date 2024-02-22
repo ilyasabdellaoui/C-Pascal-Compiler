@@ -302,7 +302,6 @@ void INTER_INST(INST INST)
   case BRN:
     // On bouge PC à l'adresse du label
     MOVE_PC_LABEL(INST);
-    // Si on donnait l'adresse comme label: PC = INST.SUITE;
     break;
   case BZE:
     if (MEM[SP--] == 0) {
