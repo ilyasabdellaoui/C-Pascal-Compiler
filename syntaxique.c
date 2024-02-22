@@ -288,11 +288,11 @@ void PROGRAM() {
     //  Check for the dot after BLOCK
     if (SYM_COUR.CODE == PT_TOKEN) {
         // Sym_Suiv(); // Consume the dot
-        printf("Program execution completed.\nBRAVO: le programme est correcte!!!\n");
+        printf("Fin de l'execution du programme.\nSucces : programme correct !\n");
     }
     else {
         Erreur(PT_ERR);
-        printf("PAS BRAVO: fin de programme erronee!!!!\n");
+        printf("ERREUR: fin de programme erronee!!!!\n");
 
         // Add this line to consume symbols until the end of the file
         while (SYM_COUR.CODE != FIN_TOKEN) {
@@ -693,9 +693,13 @@ int main(int argc, char *argv[]) {
     //     printf("Current Lexeme: %s\n", SYM_COUR.NOM);
     //     Sym_Suiv(); // Move this line inside the else block
     // }
-    printf("TABLE DES IDENTIFICATEURS\n");
-    for (int i = 0; i < 100 && strcmp(TAB_IDFS[i].NOM, ""); i++) {
-        printf("%s \n", TAB_IDFS[i].NOM);
+
+    // if in 2nd arhument we have the word "print" then we print the table of identifiers
+    if (argc > 2 && strcmp(argv[2], "print") == 0) {
+        printf("TABLE DES IDENTIFICATEURS\n");
+        for (int i = 0; i < 100 && strcmp(TAB_IDFS[i].NOM, ""); i++) {
+            printf("%s \n", TAB_IDFS[i].NOM);
+        }
     }
     fclose(fichier);
 
