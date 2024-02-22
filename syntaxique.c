@@ -126,9 +126,14 @@ void lire_nombre() {
     strcpy(SYM_COUR.NOM, nombre);
 }
 
+int nbrLigne_Cour = 1;
+
 void Sym_Suiv() {
     while (Car_Cour == ' ' || Car_Cour == '\n' || Car_Cour == '\t')
     {
+        if (Car_Cour == '\n') {
+            nbrLigne_Cour++;
+        }
         Lire_Car();
     }
     if (isalpha(Car_Cour))
@@ -255,7 +260,8 @@ void Erreur(CODES_ERR code) {
     char *lexeme = SYM_COUR.NOM;
     ERROR_MESSAGE error = getError(code);
     printf("%s : ", error.code_str);
-    printf(error.message, lexeme);
+    printf(error.message, lexeme); 
+    printf(" dans la ligne %d\n", nbrLigne_Cour);
     exit(EXIT_FAILURE);
 }
 
