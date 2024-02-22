@@ -1,6 +1,12 @@
 # C-Pascal-Compiler
 Ce dépôt contient le code source d'un compilateur simple de pascal en C. Le compilateur est capable de générer du code intermédiaire (p-code) à partir d'un programme pascal. Le p-code est ensuite exécuté par une machine virtuelle.
 
+## Contributeurs
+* Said NAJIM
+* Ilyas ABDELLAOUI
+* Ahmed LAZREK
+* Yahya NAHLI
+
 ## Fonctionnalités
 
 * Analyse lexicale
