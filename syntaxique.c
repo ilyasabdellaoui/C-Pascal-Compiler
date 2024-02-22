@@ -22,7 +22,7 @@ int ADRESSE;
 int if_label_cour = 0;
 int while_label_cour = 1;
 
-// Déclaration des fonctions
+// Declaration des fonctions
 void VARS();
 void INSTS();
 void INST();
@@ -72,7 +72,7 @@ void lire_mot() {
     // Ajout du caractère de fin de chaîne
     mot[indice] = '\0';
 
-    // Vérifier si le mot est un mot-clé
+    // Verifier si le mot est un mot-cle
     if (strcasecmp(mot, "program") == 0) {
         SYM_COUR.CODE = PROGRAM_TOKEN;
     } else if (strcasecmp(mot, "const") == 0) {
@@ -127,10 +127,15 @@ void lire_nombre() {
     strcpy(SYM_COUR.NOM, nombre);
 }
 
+int nbrLigne_Cour = 1;
+
 void Sym_Suiv() {
     SYM_PRECED = SYM_COUR;
     while (Car_Cour == ' ' || Car_Cour == '\n' || Car_Cour == '\t')
     {
+        if (Car_Cour == '\n') {
+            nbrLigne_Cour++;
+        }
         Lire_Car();
     }
     if (isalpha(Car_Cour))
@@ -254,9 +259,11 @@ void Lire_Car() {
 }
 
 void Erreur(CODES_ERR code) {
-    printf("Erreur: %s\n", getError(code));
-    printf("Current Token: %d\n", SYM_COUR.CODE);
-    printf("Current Lexeme: %s\n", SYM_COUR.NOM);
+    char *lexeme = SYM_COUR.NOM;
+    ERROR_MESSAGE error = getError(code);
+    printf("%s : ", error.code_str);
+    printf(error.message, lexeme); 
+    printf(" dans la ligne %d\n", nbrLigne_Cour);
     exit(EXIT_FAILURE);
 }
 
@@ -272,7 +279,7 @@ void PROGRAM() {
     Test_Symbole(PROGRAM_TOKEN, PROGRAM_ERR);
     Test_Symbole(ID_TOKEN, ID_ERR);
     strcpy(PROG_ID, SYM_PRECED.NOM);
-    // Gén p-code: debut du programme
+    // Gen p-code: debut du programme
     Generer_Args("INT", c);
     Test_Symbole(PV_TOKEN, PV_ERR);
     BLOCK();
@@ -281,11 +288,11 @@ void PROGRAM() {
     //  Check for the dot after BLOCK
     if (SYM_COUR.CODE == PT_TOKEN) {
         // Sym_Suiv(); // Consume the dot
-        printf("Program execution completed.\nBRAVO: le programme est correcte!!!\n");
+        printf("Fin de l'execution du programme.\nSucces : programme correct !\n");
     }
     else {
         Erreur(PT_ERR);
-        printf("PAS BRAVO: fin de programme erronée!!!!\n");
+        printf("ERREUR: fin de programme erronee!!!!\n");
 
         // Add this line to consume symbols until the end of the file
         while (SYM_COUR.CODE != FIN_TOKEN) {
@@ -326,7 +333,7 @@ void CONSTS() {
             Test_Symbole(NUM_TOKEN, NUM_ERR);
             TAB_IDFS[c].VAL = atoi(SYM_PRECED.NOM);
             Test_Symbole(PV_TOKEN, PV_ERR);
-            // Génération du p-code pour l'affectation
+            // Generation du p-code pour l'affectation
             Generer_Args("LDA", c);
             Generer_Args("LDI", TAB_IDFS[c].VAL);
             Generer_Arg("STO");
@@ -438,7 +445,7 @@ void AFFEC() {
     ADRESSE = Is_Defined(SYM_PRECED.NOM);
     Is_Const(ADRESSE);
     Test_Symbole(AFF_TOKEN, AFF_ERR);
-    // Gén p-code: récupération de l'adresse
+    // Gen p-code: recuperation de l'adresse
     Generer_Args("LDA", ADRESSE);
     EXPR();
     Generer_Arg("STO");
@@ -551,7 +558,7 @@ void FACT() {
     case ID_TOKEN:
         Test_Symbole(ID_TOKEN, ID_ERR);
         ADRESSE = Is_Defined(SYM_PRECED.NOM);
-        // Gén p-code: récupération de la valeur
+        // Gen p-code: recuperation de la valeur
         Generer_Args("LDA", ADRESSE);
         Generer_Arg("LDV");
         break;
@@ -648,7 +655,7 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
 
-    // L'extension du fichier pascal va etre remplacée par _output.txt
+    // L'extension du fichier pascal va etre remplacee par _output.txt
     char *extension = strrchr(argv[1], '.');
     char output_filename[100];
     if (extension != NULL) {
@@ -661,10 +668,10 @@ int main(int argc, char *argv[]) {
     }
     strcat(output_filename, "_output.txt");
 
-    // Ouvrir le fichier de sortie en écriture
+    // Ouvrir le fichier de sortie en ecriture
     p_output = fopen(output_filename, "w");
     if (p_output == NULL) {
-        fprintf(stderr, "Erreur : Impossible de créer le fichier de sortie.\n");
+        fprintf(stderr, "Erreur : Impossible de creer le fichier de sortie.\n");
         fclose(fichier);
         return EXIT_FAILURE;
     }
@@ -682,14 +689,18 @@ int main(int argc, char *argv[]) {
     // }
     // else
     // {
-    //     printf("PAS BRAVO: fin de programme erronée!!!!\n");
+    //     printf("PAS BRAVO: fin de programme erronee!!!!\n");
     //     printf("Current Token: %d\n", SYM_COUR.CODE);
     //     printf("Current Lexeme: %s\n", SYM_COUR.NOM);
     //     Sym_Suiv(); // Move this line inside the else block
     // }
-    printf("TABLE DES IDENTIFICATEURS\n");
-    for (int i = 0; i < 100 && strcmp(TAB_IDFS[i].NOM, ""); i++) {
-        printf("%s \n", TAB_IDFS[i].NOM);
+
+    // if in 2nd arhument we have the word "print" then we print the table of identifiers
+    if (argc > 2 && strcmp(argv[2], "print") == 0) {
+        printf("TABLE DES IDENTIFICATEURS\n");
+        for (int i = 0; i < 100 && strcmp(TAB_IDFS[i].NOM, ""); i++) {
+            printf("%s \n", TAB_IDFS[i].NOM);
+        }
     }
     fclose(fichier);
 

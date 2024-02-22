@@ -42,48 +42,174 @@ typedef enum {
     USED_PROG_ID_ERR
 } CODES_ERR;
 
-static inline const char * getError(CODES_ERR code) {
+typedef struct {
+    CODES_ERR code;
+    const char *code_str;
+    const char *message;
+} ERROR_MESSAGE;
+
+static inline ERROR_MESSAGE getError(CODES_ERR code) {
+    ERROR_MESSAGE error;
+    error.code = code;
     switch (code) {
-        case ID_ERR: return "ID_ERR";
-        case PROGRAM_ERR: return "PROGRAM_ERR";
-        case CONST_ERR: return "CONST_ERR";
-        case VAR_ERR: return "VAR_ERR";
-        case BEGIN_ERR: return "BEGIN_ERR";
-        case END_ERR: return "END_ERR";
-        case IF_ERR: return "IF_ERR";
-        case THEN_ERR: return "THEN_ERR";
-        case WHILE_ERR: return "WHILE_ERR";
-        case DO_ERR: return "DO_ERR";
-        case READ_ERR: return "READ_ERR";
-        case WRITE_ERR: return "WRITE_ERR";
-        case PV_ERR: return "PV_ERR";
-        case PT_ERR: return "PT_ERR";
-        case PLUS_ERR: return "PLUS_ERR";
-        case MOINS_ERR: return "MOINS_ERR";
-        case MULT_ERR: return "MULT_ERR";
-        case DIV_ERR: return "DIV_ERR";
-        case VIR_ERR: return "VIR_ERR";
-        case AFF_ERR: return "AFF_ERR";
-        case INF_ERR: return "INF_ERR";
-        case INFEG_ERR: return "INFEG_ERR";
-        case SUP_ERR: return "SUP_ERR";
-        case SUPEG_ERR: return "SUPEG_ERR";
-        case DIFF_ERR: return "DIFF_ERR";
-        case PO_ERR: return "PO_ERR";
-        case PF_ERR: return "PF_ERR";
-        case FIN_ERR: return "FIN_ERR";
-        case NUM_ERR: return "NUM_ERR";
-        case ERREUR_ERR: return "ERREUR_ERR";
-        case EOF_ERR: return "EOF_ERR";
-        case EG_ERR: return "EG_ERR";
-        case CONST_VAR_BEGIN_ERR: return "CONST_VAR_BEGIN_ERR";
-        case VAR_BEGIN_ERR: return "VAR_BEGIN_ERR";
-        case MISS_ID_ERR: return "MISS_ID_ERR";
-        case REP_ID_ERR: return "REP_ID_ERR";
-        case CHANGE_CONST_ERR: return "CHANGE_CONST_ERR";
-        case USED_PROG_ID_ERR: return "USED_PROG_ID_ERR";
-        default: return "UNKNOWN_ERR";
+        case ID_ERR: 
+            error.code_str = "ID_ERR";
+            error.message = "Un identiticateur est attendu mais '%s' a ete trouve a la place";
+            break;
+        case PROGRAM_ERR: 
+            error.code_str = "PROGRAM_ERR";
+            error.message = "Le mot-cle 'program' est attendu mais '%s' a ete trouve a la place";
+            break;
+        case CONST_ERR: 
+            error.code_str = "CONST_ERR";
+            error.message = "'const' est attendu mais '%s' a ete trouve a la place";
+            break;
+        case VAR_ERR:
+            error.code_str = "VAR_ERR";
+            error.message = "'var' est attendu mais '%s' a ete trouve a la place";
+            break;
+        case BEGIN_ERR: 
+            error.code_str = "BEGIN_ERR";
+            error.message = "'begin' est attendu mais '%s' a ete trouve a la place";
+            break;
+        case END_ERR:  
+            error.code_str = "END_ERR";
+            error.message = "'end' est attendu mais '%s' a ete trouve a la place";
+            break;
+        case IF_ERR: 
+            error.code_str = "IF_ERR";
+            error.message = "'if' est attendu mais '%s' a ete trouve a la place";
+            break;
+        case THEN_ERR: 
+            error.code_str = "THEN_ERR";
+            error.message = "'then' est attendu mais '%s' a ete trouve a la place";
+            break;
+        case WHILE_ERR:
+            error.code_str = "WHILE_ERR";
+            error.message = "'while' est attendu mais '%s' a ete trouve a la place";
+            break;
+        case DO_ERR: 
+            error.code_str = "DO_ERR";
+            error.message = "'do' est attendu mais '%s' a ete trouve a la place";
+            break;
+        case READ_ERR: 
+            error.code_str = "READ_ERR";
+            error.message = "'read' est attendu mais '%s' a ete trouve a la place";
+            break;
+        case WRITE_ERR: 
+            error.code_str = "WRITE_ERR";
+            error.message = "'write' est attendu mais '%s' a ete trouve a la place";
+            break;
+        case PV_ERR:
+            error.code_str = "PV_ERR";
+            error.message = "';' est attendu mais '%s' a ete trouve a la place";
+            break;
+        case PT_ERR:
+            error.code_str = "PT_ERR";
+            error.message = "'.' est attendu mais '%s' a ete trouve a la place";
+            break;
+        case PLUS_ERR: 
+            error.code_str = "PLUS_ERR";
+            error.message = "'+' est attendu mais '%s' a ete trouve a la place";
+            break;
+        case MOINS_ERR: 
+            error.code_str = "MOINS_ERR";
+            error.message = "'-' est attendu mais '%s' a ete trouve a la place";
+            break;
+        case MULT_ERR: 
+            error.code_str = "MULT_ERR";
+            error.message = "'*' est attendu mais '%s' a ete trouve a la place";
+            break;
+        case DIV_ERR: 
+            error.code_str = "DIV_ERR";
+            error.message = "'/' est attendu mais '%s' a ete trouve a la place";
+            break;
+        case VIR_ERR: 
+            error.code_str = "VIR_ERR";
+            error.message = "',' est attendu mais '%s' a ete trouve a la place";
+            break;
+        case AFF_ERR: 
+            error.code_str = "AFF_ERR";
+            error.message = "':=' est attendu mais '%s' a ete trouve a la place";
+            break;
+        case INF_ERR: 
+            error.code_str = "INF_ERR";
+            error.message = "'<' est attendu mais '%s' a ete trouve a la place";
+            break;
+        case INFEG_ERR: 
+            error.code_str = "INFEG_ERR";
+            error.message = "'<=' est attendu mais '%s' a ete trouve a la place";
+            break;
+        case SUP_ERR:
+            error.code_str = "SUP_ERR";
+            error.message = "'>' est attendu mais '%s' a ete trouve a la place";
+            break;
+        case SUPEG_ERR: 
+            error.code_str = "SUPEG_ERR";
+            error.message = "'>=' est attendu mais '%s' a ete trouve a la place";
+            break;
+        case DIFF_ERR: 
+            error.code_str = "DIFF_ERR";    
+            error.message = "'<>' est attendu mais '%s' a ete trouve a la place";
+            break;
+        case PO_ERR: 
+            error.code_str = "PO_ERR";
+            error.message = "'(' est attendu mais '%s' a ete trouve a la place";
+            break;
+        case PF_ERR: 
+            error.code_str = "PF_ERR";
+            error.message = "')' est attendu mais '%s' a ete trouve a la place";
+            break;
+        case FIN_ERR: 
+            error.code_str = "FIN_ERR";
+            error.message = "'fin' attendu mais trouve '%s'";
+            break;
+        case NUM_ERR:
+            error.code_str = "NUM_ERR";
+            error.message = "Un nombre est attendu mais '%s' a ete trouve a la place";
+            break;
+        case ERREUR_ERR:
+            error.code_str = "ERREUR_ERR";  
+            error.message = "Erreur inattendue";
+            break;
+        case EOF_ERR:
+            error.code_str = "EOF_ERR";
+            error.message = "Fin de fichier inattendue";
+            break;
+        case EG_ERR:
+            error.code_str = "EG_ERR";
+            error.message = "'=' est attendu mais '%s' a ete trouve a la place";
+            break;
+        case CONST_VAR_BEGIN_ERR:
+            error.code_str = "CONST_VAR_BEGIN_ERR";
+            error.message = "'const', 'var', ou 'begin' attendu mais trouve '%s'";
+            break;
+        case VAR_BEGIN_ERR:
+            error.code_str = "VAR_BEGIN_ERR";
+            error.message = "'var' ou 'begin' attendu mais trouve '%s'";
+            break;
+        case MISS_ID_ERR:
+            error.code_str = "MISS_ID_ERR";
+            error.message = "L'identificateur '%s' est manquant ou non defini";
+            break;
+        case REP_ID_ERR:
+            error.code_str = "REP_ID_ERR";
+            error.message = "L'identificateur '%s' est deja defini";
+            break;
+        case CHANGE_CONST_ERR:
+            error.code_str = "CHANGE_CONST_ERR";
+            error.message = "Modification de constante '%s' interdite";
+            break;
+        case USED_PROG_ID_ERR:
+            error.code_str = "USED_PROG_ID_ERR";
+            error.message = "L'identificateur '%s' est deja utilise par le programme";
+            break;
+        default: 
+            error.code_str = "ERREUR_ERR";
+            error.message = "Erreur inattendue";
+            break;
     }
+    return error;
 }
 
 #endif /* ERRORS_H */
