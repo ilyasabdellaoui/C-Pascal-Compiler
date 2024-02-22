@@ -354,7 +354,7 @@ void VARS() {
         }
         Already_Defined(SYM_PRECED.NOM);
         strcpy(TAB_IDFS[c].NOM, SYM_PRECED.NOM);
-        // Réservation implicite de l'espace mémoire
+        Generer_Args("INT", c);
         c++;
         while (SYM_COUR.CODE == VIR_TOKEN) {
             Sym_Suiv();
@@ -365,6 +365,7 @@ void VARS() {
             TAB_IDFS[c].TIDF = TVAR;
             Already_Defined(SYM_PRECED.NOM);
             strcpy(TAB_IDFS[c].NOM, SYM_PRECED.NOM);
+            Generer_Args("INT", c);
             c++;
         }
 
@@ -461,7 +462,7 @@ void TANTQUE() {
     Test_Symbole(DO_TOKEN, DO_ERR);
     INST();
     Generer_Args("BRN", while_label_cour);
-    Generer_Args("BZE", while_label_cour + 1);
+    Generer_Args("LABEL", while_label_cour + 1);
     while_label_cour += 3;
 }
 
